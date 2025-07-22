@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código Estelar: Curso de Python</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap');
+        :root {
+            --color-fondo: #0a0a23; --color-texto: #e0e0e0; --color-primario: #00f2ff;
+            --color-secundario: #ff00c1; --color-exito: #00ff85; --color-pista: #ffdd00;
+            --color-proyecto: #ffd700; --color-admin: #c300ff; --color-error: #ff4d4d;
+        }
+        body {
+            font-family: 'Roboto', sans-serif; background-color: var(--color-fondo); color: var(--color-texto);
+            margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh;
+            background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Cg fill="%231a1a3a" fill-opacity="0.4"%3E%3Cpath d="M50 0a50 50 0 0 0 0 100 50 50 0 0 0 0-100zm0 1a49 49 0 0 1 0 98 49 49 0 0 1 0-98z"/%3E%3C/g%3E%3C/svg%3E');
+        }
+        .pantalla { width: 100%; height: 100%; position: absolute; top: 0; left: 0; transition: opacity 0.5s ease; }
+        .oculto { opacity: 0; pointer-events: none; }
+        h1, h2, h3 { font-family: 'Orbitron', sans-serif; text-align: center; text-shadow: 0 0 5px var(--color-primario); }
+        #pasoTitulo { color: var(--color-proyecto); text-shadow: 0 0 5px var(--color-proyecto); }
+        #loginScreen { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .login-box { background: rgba(26, 26, 58, 0.8); padding: 40px; border-radius: 15px; border: 1px solid var(--color-primario); box-shadow: 0 0 20px rgba(0, 242, 255, 0.3); text-align: center; }
+        #cadeteNameInput { width: 250px; padding: 12px; margin-bottom: 20px; border: 1px solid var(--color-primario); background-color: var(--color-fondo); color: var(--color-texto); border-radius: 5px; font-size: 16px; }
+        button { padding: 12px 25px; margin-top: 5px; border: none; border-radius: 5px; background: var(--color-primario); color: var(--color-fondo); font-family: 'Orbitron', sans-serif; font-size: 16px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 10px rgba(0, 242, 255, 0.5); }
+        button:hover { background: var(--color-texto); box-shadow: 0 0 15px rgba(0, 242, 255, 0.8); }
+        button:disabled { background-color: #4b4b6b; cursor: not-allowed; box-shadow: none; }
+        #pedirPistaBtn { background-color: var(--color-pista); color: black; box-shadow: 0 0 10px rgba(255, 221, 0, 0.5); }
+        #pedirPistaBtn:hover { background-color: white; box-shadow: 0 0 15px rgba(255, 221, 0, 0.8); }
+        #resolverBtn { background-color: var(--color-admin); color: white; box-shadow: 0 0 10px var(--color-admin); }
+        #resolverBtn:hover { background-color: white; color: black; box-shadow: 0 0 15px var(--color-admin); }
+        .admin-only { display: none; }
+        #header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(26, 26, 58, 0.8); border-bottom: 1px solid var(--color-primario); }
+        #info-cadete { font-size: 18px; }
+        .mapa-container { display: flex; justify-content: center; align-items: flex-start; height: calc(100vh - 80px); flex-wrap: wrap; overflow-y: auto; padding: 20px; }
+        .mapa { display: flex; gap: 40px; align-items: center; justify-content: center; flex-wrap: wrap; max-width: 1200px; }
+        .planeta { width: 120px; height: 120px; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: all 0.4s ease; position: relative; flex-shrink: 0; }
+        .planeta .planeta-nombre { font-size: 14px; font-weight: bold; margin-top: 5px; }
+        .planeta .planeta-icono { font-size: 40px; }
+        .planeta.desbloqueado { background: radial-gradient(circle, #ff9a00, #ff5e00); cursor: pointer; animation: pulsoPlaneta 2s infinite; }
+        .planeta.desbloqueado:hover { transform: scale(1.1); }
+        .planeta.completado { background: radial-gradient(circle, var(--color-exito), #00a356); cursor: pointer; border: 2px solid var(--color-exito); }
+        .planeta.completado.proyecto { border-color: var(--color-proyecto); }
+        .planeta.completado::after { content: '✔️'; position: absolute; font-size: 24px; color: white; background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 5px; }
+        .planeta.proyecto .planeta-nombre { color: var(--color-proyecto); text-shadow: 0 0 5px yellow; }
+        @keyframes pulsoPlaneta { 0% { box-shadow: 0 0 10px #ff9a00; } 50% { box-shadow: 0 0 25px #ff5e00; } 100% { box-shadow: 0 0 10px #ff9a00; } }
+        #misionScreen { display: flex; flex-direction: column; height: 100vh; }
+        #misionScreen-container { display: flex; flex-grow: 1; }
+        .panel { padding: 20px; height: calc(100vh - 120px); overflow-y: auto; }
+        #panelInstrucciones { flex: 1; background-color: rgba(10, 10, 35, 0.7); }
+        #panelInstrucciones .botones-mision { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        #panelCodigo { flex: 2; background-color: var(--color-fondo); border-left: 1px solid var(--color-primario); border-right: 1px solid var(--color-primario); display: flex; flex-direction: column; }
+        #panelResultados { flex: 1.5; background-color: rgba(10, 10, 35, 0.7); }
+        #editorCodigo { width: 98%; flex-grow: 1; background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #333; border-radius: 5px; font-family: 'Courier New', Courier, monospace; font-size: 16px; padding: 10px; resize: none; }
+        #panelCodigo button { margin-top: 15px; width: 100%; }
+        #misionDescripcion { background: #1e1e1e; padding: 15px; border-radius: 5px; border-left: 4px solid var(--color-secundario); white-space: pre-wrap; line-height: 1.6; }
+        #outputTexto { background-color: #1e1e1e; padding: 15px; border-radius: 5px; white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; min-height: 100px; margin-top: 20px; }
+        #outputVisual { text-align: center; font-size: 80px; margin-top: 40px; height: 100px; }
+    </style>
+</head>
+<body>
+    <div id="loginScreen" class="pantalla"> <div class="login-box"> <h1>Código Estelar</h1> <p>Tu curso de programación Python comienza aquí</p> <input type="text" id="cadeteNameInput" placeholder="Nombre de Cadete"><br><button onclick="login()">Ingresar / Registrar</button> </div> </div>
+    <div id="mapaEstelarScreen" class="pantalla oculto"> <div id="header"> <div id="info-cadete"> <span id="cadeteNameDisplay"></span> | Nivel: <span id="cadeteLevelDisplay"></span> | XP: <span id="cadeteXpDisplay"></span> </div> <button onclick="logout()">Salir de la nave</button> </div> <div class="mapa-container"> <div class="mapa"></div> </div> </div>
+    <div id="misionScreen" class="pantalla oculto"> <div id="misionScreen-header" style="padding:10px;"> <h2 id="misionTitulo"></h2> <h3 id="pasoTitulo"></h3> </div> <div id="misionScreen-container"> <div id="panelInstrucciones" class="panel"> <h3>🤖 BitBot dice:</h3> <div id="misionDescripcion"></div> <div class="botones-mision"> <button id="pedirPistaBtn" onclick="pedirPista()">Pedir Pista 🤖</button> <button id="resolverBtn" class="admin-only" onclick="resolverMision()">Resolver Misión 🔑</button> <button onclick="volverAlMapa()">Volver al Mapa Estelar</button> </div> </div> <div id="panelCodigo" class="panel"> <h3>Editor de Código Python</h3> <textarea id="editorCodigo" spellcheck="false"></textarea> <button id="ejecutarBtn" onclick="ejecutarCodigo()">🚀 Ejecutar Código</button> </div> <div id="panelResultados" class="panel"> <h3>Consola de Resultados</h3> <div id="outputVisual"></div> <pre id="outputTexto"></pre> </div> </div> </div>
+
+    <script>
+    const MISIONES = [
+        // Módulo 1: Fundamentos
+        { id: 'print', nombre: '1. Primera Transmisión', icono: '📡', desc: `Usa la función print() para enviar el mensaje "Hola, universo!".`, xp: 25, pista: `Para mostrar texto, usamos print(). El texto (o "string") debe ir entre paréntesis y comillas.`, solucion: `print("Hola, universo!")`, v: c => c.includes('print("Hola,universo!")') || c.includes("print('Hola,universo!')") },
+        { id: 'variables', nombre: '2. Contenedores', icono: '📦', desc: `Crea una variable 'nombre_nave' y asígnale el texto "Explorador".`, xp: 25, pista: `La sintaxis para guardar información es: nombre_variable = valor. No olvides las comillas para el texto.`, solucion: `nombre_nave = "Explorador"`, v: c => c.includes('nombre_nave="Explorador"') || c.includes("nombre_nave='Explorador'") },
+        { id: 'tipos_datos', nombre: '3. Tipos de Carga', icono: '🏷️', desc: `Crea 'tripulantes' con el número 5 (entero) y 'oxigeno_porc' con 95.5 (decimal).`, xp: 30, pista: `Recuerda, los números no llevan comillas.`, solucion: `tripulantes = 5\noxigeno_porc = 95.5`, v: c => c.includes('tripulantes=5') && c.includes('oxigeno_porc=95.5') },
+        { id: 'operaciones', nombre: '4. Cálculos de Vuelo', icono: '➕', desc: `Tenemos 'reserva_a' = 100 y 'reserva_b' = 250. Crea 'combustible_total' que sea la suma de ambas.`, xp: 30, pista: `Puedes sumar variables directamente usando el símbolo +.`, solucion: `reserva_a = 100\nreserva_b = 250\ncombustible_total = reserva_a + reserva_b`, v: c => c.includes('combustible_total=reserva_a+reserva_b') || c.includes('combustible_total=100+250') },
+        { id: 'string_format', nombre: '5. Reporte Formal', icono: '📜', desc: `Tenemos 'nombre'="Zorp" y 'planeta'="Xylar". Usa una f-string para imprimir el reporte: "Reporte: Zorp viene de Xylar."`, xp: 40, pista: `Para combinar texto y variables, una f-string es ideal. La sintaxis es: f"Mi texto con {mi_variable}"`, solucion: `nombre = "Zorp"\nplaneta = "Xylar"\nprint(f"Reporte: {nombre} viene de {planeta}.")`, v: c => (c.includes('f"') || c.includes("f'")) && c.includes('{nombre}') && c.includes('{planeta}') },
+        { id: 'p1_calc_suministros', nombre: 'P1: Calculadora', icono: '🏆', type: 'proyecto', xp: 75, steps: [
+            { d: `**Paso 1:** Crea 'dias_viaje'=10 y 'agua_por_dia'=2.`, p: `Necesitas dos líneas, una para cada variable.`, solucion: `dias_viaje = 10\nagua_por_dia = 2`, v: c => c.includes('dias_viaje=10') && c.includes('agua_por_dia=2') },
+            { d: `**Paso 2:** Crea 'agua_total' multiplicando 'dias_viaje' por 'agua_por_dia'.`, p: `Para multiplicar, usamos el asterisco *.`, solucion: `agua_total = dias_viaje * agua_por_dia`, v: c => c.includes('agua_total=dias_viaje*agua_por_dia') },
+            { d: `**Paso 3:** Usa print() para mostrar el resultado.`, p: `Puedes usar una f-string: f"Necesitaremos {agua_total} litros de agua."`, solucion: `print(f"Necesitaremos {agua_total} litros de agua.")`, v: c => c.includes('print(') && (c.includes('{agua_total}') || c.includes('agua_total') || c.includes('20')) }
+        ]},
+        // Módulo 2: Listas y Bucles
+        { id: 'listas', nombre: '6. Inventario', icono: '📋', desc: `Crea una lista 'herramientas' con "llave inglesa" y "destornillador".`, xp: 40, pista: `Las listas usan corchetes [] y se separan por comas.`, solucion: `herramientas = ["llave inglesa", "destornillador"]`, v: c => { const hasVar = c.includes('herramientas=['); const hasLlave = c.includes('"llaveinglesa"') || c.includes("'llaveinglesa'"); const hasDest = c.includes('"destornillador"') || c.includes("'destornillador'"); return hasVar && hasLlave && hasDest; } },
+        { id: 'listas_acceso', nombre: '7. Seleccionar Objeto', icono: '👆', desc: `Crea 'primera_herramienta' con el primer elemento de la lista 'herramientas'.`, xp: 40, pista: `El primer elemento está en la posición 0. Accede con: nombre_lista[0].`, solucion: `herramientas = ["llave inglesa", "destornillador"]\nprimera_herramienta = herramientas[0]`, v: c => c.includes('primera_herramienta=herramientas[0]') },
+        { id: 'listas_append', nombre: '8. Añadir a Inventario', icono: '➕', desc: `Añade "martillo" al final de 'herramientas' usando el método .append().`, xp: 40, pista: `Usa: nombre_lista.append(elemento).`, solucion: `herramientas = ["llave inglesa", "destornillador"]\nherramientas.append("martillo")`, v: c => c.includes('herramientas.append("martillo")') || c.includes("herramientas.append('martillo')") },
+        { id: 'len_funcion', nombre: '9. Contar Objetos', icono: '🔢', desc: `Crea 'num_herramientas' con la cantidad de elementos en 'herramientas' usando len().`, xp: 45, pista: `¿Cómo saber el "largo" de una lista? Hay una función de 3 letras que lo hace.`, solucion: `herramientas = ["llave inglesa", "destornillador"]\nnum_herramientas = len(herramientas)`, v: c => c.includes('num_herramientas=len(herramientas)') },
+        { id: 'bucles_for', nombre: '10. Revisión de Motores', icono: '🔄', desc: `Usa un bucle 'for' con range() para revisar 4 motores. Debe imprimir "Revisando motor..." 4 veces.`, xp: 50, pista: `Para repetir algo N veces, usa 'for _ in range(N):'. ¡No olvides la indentación!`, solucion: `for i in range(4):\n    print("Revisando motor...")`, v: c => c.includes('for') && c.includes('inrange(4):') && c.includes('print') },
+        { id: 'p2_analizador_carga', nombre: 'P2: Analizador', icono: '🏆', type: 'proyecto', xp: 80, steps: [
+            { d: `Tenemos 'carga = ["agua", "rocas", "oxígeno"]'.\n\n**Paso 1:** Escribe un bucle 'for' que recorra cada 'item' en 'carga'.`, p: `'for variable in nombre_de_lista:'.`, solucion: `carga = ["agua", "rocas", "oxígeno"]\nfor item in carga:`, v: c => c.includes('foritemincarga:') },
+            { d: `**Paso 2:** Dentro del bucle, usa print() para mostrar cada 'item'.`, p: `La línea con 'print' debe tener un espacio al principio.`, solucion: `    print(item)`, v: c => c.includes('foritemincarga:') && c.includes('print(item)') },
+            { d: `**Paso 3:** Antes del bucle, crea 'contador' = 0. Dentro, si el 'item' NO es "rocas", incrementa 'contador' en 1.`, p: `Usa 'if item != "rocas":' y 'contador += 1'.`, solucion: `contador = 0\n#... bucle anterior ...\n    if item != "rocas":\n        contador += 1`, v: c => c.includes('contador=0') && (c.includes('ifitem!="rocas":') || c.includes("ifitem!='rocas':")) && (c.includes('contador=contador+1') || c.includes('contador+=1')) }
+        ]},
+        // Módulo 3: Lógica y Control
+        { id: 'condicionales_if', nombre: '11. Sensor de Presión', icono: '❓', desc: `'presion' = 110. Escribe un 'if' que compruebe si 'presion' > 100 e imprima "Alerta".`, xp: 50, pista: `Usa 'if condicion:'. El símbolo para "mayor que" es >.`, solucion: `presion = 110\nif presion > 100:\n    print("Alerta")`, v: c => c.includes('ifpresion>100:') && c.includes('print') },
+        { id: 'condicionales_if_else', nombre: '12. Compuerta Alien', icono: '👽', desc: `'codigo' = "amigo". Usa 'if/else' para que si 'codigo' == "amigo", imprima "Abrir". Si no, "Cerrar".`, xp: 50, pista: `Usa 'else:' para lo que pasa si el 'if' no se cumple. Para comparar textos, usa ==.`, solucion: `codigo = "amigo"\nif codigo == "amigo":\n    print("Abrir")\nelse:\n    print("Cerrar")`, v: c => (c.includes('ifcodigo=="amigo":') || c.includes("ifcodigo=='amigo':")) && c.includes('else:') && c.includes('print') },
+        { id: 'condicionales_if_elif', nombre: '13. Diagnóstico Energía', icono: '🚦', desc: `'energia' = 75. Usa if/elif/else: imprime "Recargar" si < 20, "Estable" si < 80, o "Óptimo".`, xp: 60, pista: `'elif' añade más condiciones. El orden importa.`, solucion: `energia = 75\nif energia < 20:\n    print("Recargar")\nelif energia < 80:\n    print("Estable")\nelse:\n    print("Óptimo")`, v: c => c.includes('ifenergia<20:') && c.includes('elifenergia<80:') && c.includes('else:') },
+        { id: 'while_loop', nombre: '14. Carga de Escudos', icono: '🔋', desc: `'escudo' = 0. Usa un bucle 'while' para que mientras 'escudo' < 5, imprima "Cargando..." e incremente 'escudo' en 1.`, xp: 65, pista: `'while' se repite MIENTRAS una condición sea verdadera. ¡No olvides cambiar la condición dentro del bucle!`, solucion: `escudo = 0\nwhile escudo < 5:\n    print("Cargando...")\n    escudo += 1`, v: c => c.includes('whileescudo<5:') && (c.includes('escudo=escudo+1') || c.includes('escudo+=1')) },
+        { id: 'p3_dialogo_alien', nombre: 'P3: Diálogo Alien', icono: '🏆', type: 'proyecto', xp: 100, steps: [
+            { d: `'frase_alien'="zorp".\n\n**Paso 1:** Usa if/elif/else para comprobar si 'frase_alien' == "zorp".`, p: `Comienza con 'if frase_alien == "zorp":'.`, solucion: `frase_alien = "zorp"\nif frase_alien == "zorp":`, v: c => c.includes('iffrase_alien=="zorp":') || c.includes("iffrase_alien=='zorp':") },
+            { d: `**Paso 2:** Dentro del 'if', imprime "El alien dice: hola".`, p: `Añade un print() indentado.`, solucion: `    print("El alien dice: hola")`, v: c => (c.includes('iffrase_alien=="zorp":print') || c.includes("iffrase_alien=='zorp':print")) },
+            { d: `**Paso 3:** Añade un 'elif' para comprobar si la frase es "glarb" e imprime "El alien dice: peligro".`, p: `El 'elif' va después del bloque 'if'.`, solucion: `elif frase_alien == "glarb":\n    print("El alien dice: peligro")`, v: c => c.includes('eliffrase_alien=="glarb":') || c.includes("eliffrase_alien=='glarb':") },
+            { d: `**Paso 4:** Añade un 'else:' al final que imprima "Traducción desconocida".`, p: `El 'else:' captura los casos restantes.`, solucion: `else:\n    print("Traducción desconocida")`, v: c => c.includes('else:print') }
+        ]},
+        // Módulo 4: Funciones y Diccionarios
+        { id: 'funciones', nombre: '15. Crear Comandos', icono: '🛠️', desc: `Define una función 'activar_escudos' que no reciba nada y que imprima "Escudos activados".`, xp: 60, pista: `Usa 'def nombre_funcion():'.`, solucion: `def activar_escudos():\n    print("Escudos activados")`, v: c => c.includes('defactivar_escudos():') && c.includes('print') },
+        { id: 'funciones_params', nombre: '16. Comandos con Datos', icono: '📥', desc: `Define una función 'viajar_a' que acepte 'destino' e imprima "Viajando a: {destino}".`, xp: 60, pista: `Los parámetros van en los paréntesis: def mi_funcion(parametro):`, solucion: `def viajar_a(destino):\n    print(f"Viajando a: {destino}")`, v: c => c.includes('defviajar_a(destino):') && c.includes('print') && (c.includes('{destino}') || c.includes('+destino')) },
+        { id: 'funciones_return', nombre: '17. Calcular y Devolver', icono: '📤', desc: `Define 'calcular_fuel' que acepte 'distancia' y devuelva la distancia * 2.5.`, xp: 70, pista: `Usa 'return' para devolver un valor.`, solucion: `def calcular_fuel(distancia):\n    return distancia * 2.5`, v: c => c.includes('defcalcular_fuel(distancia):') && c.includes('return') && c.includes('distancia*2.5') },
+        { id: 'diccionarios', nombre: '18. Base de Datos', icono: '📚', desc: `Crea un diccionario 'mi_nave' con clave "nombre" y valor "Halcón", y clave "clase" y valor "Carguero".`, xp: 70, pista: `Usa llaves {}. La estructura es {'clave1': valor1, 'clave2': valor2}.`, solucion: `mi_nave = {\n    "nombre": "Halcón",\n    "clase": "Carguero"\n}`, v: c => c.includes('mi_nave={') && (c.includes('"nombre":"Halcón"') || c.includes("'nombre':'Halcón'")) && (c.includes('"clase":"Carguero"') || c.includes("'clase':'Carguero'")) },
+        { id: 'diccionarios_acceso', nombre: '19. Leer Datos', icono: '📖', desc: `Del diccionario 'mi_nave', crea 'nombre_de_nave' que contenga el valor de la clave "nombre".`, xp: 70, pista: `Usa corchetes y la clave como texto: mi_diccionario['mi_clave'].`, solucion: `mi_nave = {"nombre": "Halcón"}\nnombre_de_nave = mi_nave["nombre"]`, v: c => c.includes('nombre_de_nave=mi_nave["nombre"]') || c.includes("nombre_de_nave=mi_nave['nombre']") },
+        { id: 'p4_diagnostico', nombre: 'P4: Diagnóstico', icono: '🏆', type: 'proyecto', xp: 150, steps: [
+            { d: `**Paso 1:** Define una función 'diagnosticar' que acepte un parámetro 'nave' (un diccionario).`, p: `'def diagnosticar(nave):'`, solucion: `def diagnosticar(nave):`, v: c => c.includes('defdiagnosticar(nave):') },
+            { d: `**Paso 2:** Dentro, usa un 'if' para comprobar si la "energia" de la 'nave' es menor a 50.`, p: `La condición sería: if nave["energia"] < 50:`, solucion: `    if nave["energia"] < 50:`, v: c => c.includes('ifnave["energia"]<50') || c.includes("ifnave['energia']<50") },
+            { d: `**Paso 3:** Dentro del 'if', usa 'return' para devolver "Reporte: Energía baja".`, p: `Añade 'return "Reporte: Energía baja"' indentado.`, solucion: `        return "Reporte: Energía baja"`, v: c => c.includes('return"Reporte:Energíabaja"') || c.includes("return'Reporte:Energíabaja'") },
+            { d: `**Paso 4:** Al final de la función, devuelve "Reporte: Sistemas en orden".`, p: `Esta línea va al final, sin indentación extra.`, solucion: `    return "Reporte: Sistemas en orden"`, v: c => c.includes('return"Reporte:Sistemasenorden"') || c.includes("return'Reporte:Sistemasenorden'") }
+        ]},
+        // Módulo 5: Avanzado
+        { id: 'lista_de_dicts', nombre: '20. La Flota Estelar', icono: '🚀', desc: `Dada una lista de naves (diccionarios), recorre la flota e imprime el "nombre" de cada nave.`, xp: 80, pista: `Combina un bucle 'for' y el acceso a diccionarios.`, solucion: `flota = [{"nombre": "Nave A"}, {"nombre": "Nave B"}]\nfor nave in flota:\n    print(nave["nombre"])`, v: c => c.includes('fornaveinflota:') && (c.includes('print(nave["nombre"])') || c.includes("print(nave['nombre'])")) },
+        { id: 'p5_analisis_flota', nombre: 'PROYECTO FINAL', icono: '🌟', type: 'proyecto', xp: 200, steps: [
+            { d: `¡Proyecto Final! Analizaremos una 'flota' (lista de naves).\n\n**Paso 1:** Antes del bucle, crea una variable 'naves_listas' = 0.`, p: `Solo necesitas: naves_listas = 0`, solucion: `naves_listas = 0`, v: c => c.includes('naves_listas=0') },
+            { d: `**Paso 2:** Escribe un bucle 'for' para recorrer cada 'nave' en la 'flota'.`, p: `'for nave in flota:'`, solucion: `flota = [{"energia": 80, "escudo": 60}, {"energia": 40, "escudo": 90}]\nfor nave in flota:`, v: c => c.includes('fornaveinflota:') },
+            { d: `**Paso 3:** Dentro del bucle, comprueba con un 'if' si la "energia" de la 'nave' > 75 Y su "escudo" > 50.`, p: `Puedes unir dos condiciones con 'and'.`, solucion: `    if nave["energia"] > 75 and nave["escudo"] > 50:`, v: c => (c.includes('ifnave["energia"]>75andnave["escudo"]>50') || c.includes("ifnave['energia']>75andnave['escudo']>50"))},
+            { d: `**Paso 4:** Si ambas condiciones son ciertas, incrementa 'naves_listas' en 1.`, p: `Dentro del if, usa naves_listas += 1.`, solucion: `        naves_listas += 1`, v: c => c.includes('naves_listas+=1') || c.includes('naves_listas=naves_listas+1')}
+        ]}
+    ];
+
+    let jugador = null, misionActualId = null, pasoActual = 0, isAdmin = false;
+    const pantallas = { login: document.getElementById('loginScreen'), mapa: document.getElementById('mapaEstelarScreen'), mision: document.getElementById('misionScreen') };
+
+    function mostrarPantalla(nombre) { Object.values(pantallas).forEach(p => p.classList.add('oculto')); if (pantallas[nombre]) pantallas[nombre].classList.remove('oculto'); }
+    function login() {
+        const nombreCadete = document.getElementById('cadeteNameInput').value.trim();
+        if (!nombreCadete) { alert('¡Debes ingresar un nombre de cadete!'); return; }
+        
+        isAdmin = nombreCadete.toLowerCase() === 'admin';
+
+        const datosGuardados = localStorage.getItem('codigoEstelar-' + nombreCadete);
+        jugador = datosGuardados ? JSON.parse(datosGuardados) : { nombre: nombreCadete, nivel: 1, xp: 0, progreso: {} };
+        alert(datosGuardados ? `¡Bienvenido de nuevo, Cadete ${jugador.nombre}!` : `¡Registro exitoso, Cadete ${jugador.nombre}!`);
+        if (isAdmin) alert('Modo Administrador Activado.');
+        
+        guardarProgreso();
+        mostrarMapaEstelar();
+    }
+    function logout() { alert(`Hasta la próxima, Cadete ${jugador.nombre}.`); jugador = null; misionActualId = null; isAdmin = false; document.getElementById('cadeteNameInput').value = ""; mostrarPantalla('login'); }
+    function guardarProgreso() { if (jugador) localStorage.setItem('codigoEstelar-' + jugador.nombre, JSON.stringify(jugador)); }
+    function actualizarUI() { if (!jugador) return; document.getElementById('cadeteNameDisplay').textContent = `${jugador.nombre} ${isAdmin ? '(Admin)' : ''}`; document.getElementById('cadeteLevelDisplay').textContent = jugador.nivel; document.getElementById('cadeteXpDisplay').textContent = `${jugador.xp} / ${jugador.nivel * 150}`; }
+    function mostrarMapaEstelar() {
+        actualizarUI();
+        const mapaDiv = document.querySelector('.mapa');
+        mapaDiv.innerHTML = '';
+        MISIONES.forEach(mision => {
+            const planetaDiv = document.createElement('div');
+            planetaDiv.classList.add('planeta');
+            if (mision.type === 'proyecto') planetaDiv.classList.add('proyecto');
+            let estado = isAdmin ? 'desbloqueado' : 'desbloqueado'; // Navegación Libre
+            if (jugador.progreso[mision.id]?.estado === 'completado') {
+                estado = 'completado';
+            }
+            planetaDiv.classList.add(estado);
+            planetaDiv.innerHTML = `<div class="planeta-icono">${mision.icono}</div><div class="planeta-nombre">${mision.nombre}</div>`;
+            planetaDiv.onclick = () => iniciarMision(mision.id);
+            mapaDiv.appendChild(planetaDiv);
+        });
+        mostrarPantalla('mapa');
+    }
+    function pedirPista() {
+        if (!misionActualId) return;
+        const mision = MISIONES.find(m => m.id === misionActualId);
+        let pista = mision.pista;
+        if (mision.type === 'proyecto') pista = mision.steps[pasoActual].pista;
+        alert(`🤖 Pista de BitBot:\n\n${pista}`);
+    }
+    function resolverMision() {
+        if (!isAdmin) return;
+        const mision = MISIONES.find(m => m.id === misionActualId);
+        const editor = document.getElementById('editorCodigo');
+        if (mision.type === 'proyecto') {
+            const solucionPaso = mision.steps[pasoActual].solucion;
+            editor.value += (editor.value ? '\n' : '') + solucionPaso;
+        } else {
+            editor.value = mision.solucion;
+        }
+        ejecutarCodigo();
+    }
+    function iniciarMision(id) {
+        misionActualId = id;
+        pasoActual = 0;
+        const mision = MISIONES.find(m => m.id === id);
+        document.getElementById('misionTitulo').textContent = mision.nombre;
+        const editor = document.getElementById('editorCodigo');
+        editor.value = jugador.progreso[id]?.codigo || '';
+        document.getElementById('outputVisual').textContent = '';
+        document.getElementById('outputTexto').textContent = 'Esperando ejecución...';
+        document.getElementById('outputTexto').style.color = 'var(--color-texto)';
+        document.getElementById('ejecutarBtn').disabled = false;
+        document.getElementById('resolverBtn').style.display = isAdmin ? 'block' : 'none';
+        if (mision.type === 'proyecto') {
+            cargarPaso(0);
+        } else {
+            document.getElementById('pasoTitulo').textContent = '';
+            document.getElementById('misionDescripcion').innerHTML = mision.desc.replace(/\n/g, '<br>');
+        }
+        mostrarPantalla('mision');
+    }
+    function cargarPaso(indicePaso) {
+        const mision = MISIONES.find(m => m.id === misionActualId);
+        const paso = mision.steps[indicePaso];
+        document.getElementById('pasoTitulo').textContent = `Paso ${indicePaso + 1} de ${mision.steps.length}`;
+        document.getElementById('misionDescripcion').innerHTML = paso.d.replace(/\n/g, '<br>');
+        document.getElementById('ejecutarBtn').disabled = false;
+    }
+    function volverAlMapa() { misionActualId = null; mostrarMapaEstelar(); }
+    function ejecutarCodigo() {
+        const codigoUsuario = document.getElementById('editorCodigo').value;
+        const codigoLimpio = codigoUsuario.replace(/\s/g, ''); // Limpiar espacios para validaciones estructurales
+        const mision = MISIONES.find(m => m.id === misionActualId);
+        const outputVisual = document.getElementById('outputVisual'), outputTexto = document.getElementById('outputTexto');
+        let resultado = false;
+        try {
+            if (mision.type === 'proyecto') {
+                resultado = mision.steps[pasoActual].v(codigoLimpio, codigoUsuario);
+            } else {
+                resultado = mision.v(codigoLimpio, codigoUsuario);
+            }
+        } catch(e) {
+            resultado = false;
+        }
+        if (resultado) {
+            outputVisual.textContent = '✅';
+            if (mision.type === 'proyecto') {
+                pasoActual++;
+                if (pasoActual < mision.steps.length) {
+                    outputTexto.textContent = `¡Paso completado! Ahora vamos al siguiente...`;
+                    outputTexto.style.color = 'var(--color-exito)';
+                    cargarPaso(pasoActual);
+                } else {
+                    outputTexto.textContent = `¡PROYECTO COMPLETADO! ¡Excelente trabajo, cadete!`;
+                    outputTexto.style.color = 'var(--color-exito)'; outputVisual.textContent = mision.icono;
+                    document.getElementById('ejecutarBtn').disabled = true; finalizarMision();
+                }
+            } else {
+                outputTexto.textContent = '¡MISIÓN CUMPLIDA! Código correcto.';
+                outputTexto.style.color = 'var(--color-exito)'; outputVisual.textContent = mision.icono;
+                document.getElementById('ejecutarBtn').disabled = true; finalizarMision();
+            }
+        } else {
+            outputTexto.textContent = 'Código incorrecto. ¡Inténtalo de nuevo! Relee la misión o pide una pista.';
+            outputTexto.style.color = 'var(--color-error)'; outputVisual.textContent = '❌';
+        }
+    }
+    function finalizarMision() {
+        const mision = MISIONES.find(m => m.id === misionActualId);
+        const eraCompletado = jugador.progreso[mision.id]?.estado === 'completado';
+        if (!eraCompletado) {
+            jugador.xp += mision.xp;
+            const xpParaSiguienteNivel = jugador.nivel * 150;
+            if (jugador.xp >= xpParaSiguienteNivel) {
+                jugador.nivel++;
+                jugador.xp -= xpParaSiguienteNivel;
+                setTimeout(() => alert(`✨ ¡FELICIDADES! ¡Has alcanzado el Nivel ${jugador.nivel}! ✨`), 500);
+            }
+        }
+        jugador.progreso[mision.id] = { estado: 'completado', codigo: document.getElementById('editorCodigo').value };
+        guardarProgreso();
+    }
+    window.onload = () => mostrarPantalla('login');
+    </script>
+</body>
+</html>
